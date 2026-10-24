@@ -104,6 +104,36 @@ export default function App() {
   const handleUploadPdf = async (file: File) => {
     setIsExtractingPdf(true);
     try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/process-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+      const result: unknown = await response.json();
+
+      if (!response.ok) {
+        const detail =
+          typeof result === 'object' && result !== null && 'detail' in result
+            ? result.detail
+            : undefined;
+        throw new Error(
+          typeof detail === 'string' ? detail : `PDF upload failed (${response.status})`
+        );
+      }
+
+      if (
+        typeof result !== 'object' ||
+        result === null ||
+        !('status' in result) ||
+        result.status !== 'ok' ||
+        !('filename' in result) ||
+        typeof result.filename !== 'string'
+      ) {
+        throw new Error('The backend returned an unexpected response while uploading the PDF.');
+      }
+
       const extractedPages = await extractTextFromPdfFile(file);
       const cleanTitle = file.name.replace(/\.pdf$/i, '').replace(/[-_]+/g, ' ');
 
@@ -117,12 +147,14 @@ export default function App() {
       };
 
       setCurrentBook(newBook);
-      showNotification(`Extracted ${extractedPages.length} pages from "${file.name}"`);
+      showNotification(
+        `Uploaded "${result.filename}" and extracted ${extractedPages.length} pages`
+      );
     } catch (err: any) {
       console.error(err);
       alert(
         err.message ||
-          'Failed to extract text from PDF. Ensure the file contains readable text and is not an image-only scan.'
+          'PDF upload failed. Check that the backend is running and the file contains readable text.'
       );
     } finally {
       setIsExtractingPdf(false);

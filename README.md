@@ -1,20 +1,15 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# BookVector Chroma
 
-# Run and deploy your AI Studio app
+BookVector Chroma provides a workbench for uploading PDFs, inspecting chunks, searching sample vectors, generating quizzes, and exporting a VS Code project.
 
-This contains everything you need to run your app locally.
+## Run locally
 
-View your app in AI Studio: https://ai.studio/apps/a38f1648-93f3-4ee0-bcdb-7093720175ae
+Prerequisites: Node.js and Python 3.
 
-## Run Locally
+1. Install the frontend dependencies with `npm install`.
+2. Install the API dependencies with `python -m pip install fastapi uvicorn python-multipart`.
+3. Start the API from the project directory with `python -m uvicorn server:app --reload`.
+4. In a second terminal, start the frontend with `npm run dev`.
+5. Open the Vite URL printed in the frontend terminal.
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+The frontend proxies `/api` requests to `http://localhost:8000`. Uploading a PDF stores it through `POST /api/process-pdf`, then extracts its text in the browser. The current API does not yet run the Python PDF extraction, embedding, or ChromaDB pipeline; the other workbench features continue to use the existing client-side demo data and simulators.

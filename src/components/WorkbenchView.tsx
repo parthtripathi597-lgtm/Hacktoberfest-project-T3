@@ -245,14 +245,16 @@ export const WorkbenchView: React.FC<WorkbenchViewProps> = ({
 
           {/* PDF Drag & Drop Upload */}
           <div className="space-y-2 pt-2 border-t border-slate-800/80">
-            <label className="text-xs font-medium text-slate-300">Upload Your Own PDF Book</label>
+            <label className="text-xs font-medium text-slate-300">Upload a PDF to the backend</label>
             <label className="relative flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-lg cursor-pointer bg-slate-950/40 hover:bg-slate-950/80 transition-all group">
               <Upload className="w-6 h-6 text-slate-400 group-hover:text-indigo-400 mb-1.5 transition-colors" />
               <span className="text-xs font-medium text-slate-200">
-                {isExtractingPdf ? 'Extracting text from PDF...' : 'Click to select or drop PDF file'}
+                {isExtractingPdf
+                  ? 'Uploading PDF and extracting text...'
+                  : 'Click to select or drop PDF file'}
               </span>
               <span className="text-[11px] text-slate-400 mt-0.5">
-                PDF text extracted directly in browser
+                Saved by the API, then text is extracted in your browser
               </span>
               <input
                 type="file"

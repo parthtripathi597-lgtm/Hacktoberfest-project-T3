@@ -1,0 +1,8 @@
+{
+  "name": "BookVector Chroma - PDF Chunker & HuggingFace Embedding Pipeline",
+  "description": "Production-ready PDF book chunker, Hugging Face embedding pipeline, and ChromaDB vector store generator with direct VS Code project export and in-browser interactive testing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

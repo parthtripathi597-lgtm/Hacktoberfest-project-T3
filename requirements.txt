@@ -1,0 +1,8 @@
+# Core vector database & embedding pipeline requirements
+chromadb>=0.4.24
+sentence-transformers>=2.6.0
+pypdf>=4.0.0
+torch>=2.0.0
+tqdm>=4.66.0
+rich>=13.7.0
+python-dotenv>=1.0.0

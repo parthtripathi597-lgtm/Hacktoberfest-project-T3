@@ -1,0 +1,2 @@
+Drop your PDF book files in this folder, then run:
+python ingest_pipeline.py

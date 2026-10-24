@@ -29,7 +29,14 @@ export const QuizStudioView: React.FC<QuizStudioViewProps> = ({
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
 
   const questions: QuizQuestion[] = React.useMemo(() => {
-    return generateQuizFromChunks(chunks, 4);
+    return generateQuizFromChunks(chunks, 4).map((question, index) => {
+      const offset = (index + 1) % question.options.length;
+      return {
+        ...question,
+        options: [...question.options.slice(offset), ...question.options.slice(0, offset)],
+        correctIndex: (question.correctIndex - offset + question.options.length) % question.options.length,
+      };
+    });
   }, [chunks]);
 
   const handleSelectOption = (questionId: string, optionIndex: number) => {
@@ -111,8 +118,8 @@ export const QuizStudioView: React.FC<QuizStudioViewProps> = ({
 
       {/* Score Summary if answered */}
       {totalAnswered > 0 && (
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl flex flex-wrap gap-2 items-center justify-between">
+          <div className="flex flex-wrap items-center gap-3">
             <span className="text-xs text-slate-400">Current Quiz Progress:</span>
             <span className="text-sm font-bold text-white font-mono tabular-nums">
               {correctCount} / {totalAnswered} Correct ({Math.round((correctCount / totalAnswered) * 100)}%)

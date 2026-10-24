@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SAMPLE_BOOKS, SampleBook } from '../data/sampleBooks';
+import { getModelDimensions } from '../utils/frontendCollection';
 import { TextChunk } from '../utils/chunker';
 import { VectorVisualizer } from './VectorVisualizer';
 import {
@@ -67,9 +68,9 @@ export const WorkbenchView: React.FC<WorkbenchViewProps> = ({
 
   // File upload handler
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      onUploadPdf(e.target.files[0]);
-    }
+    const file = e.currentTarget.files?.[0];
+    e.currentTarget.value = '';
+    if (file) onUploadPdf(file);
   };
 
   const selectedChunk = chunks.find((c) => c.id === selectedChunkId) || chunks[0];
@@ -90,7 +91,7 @@ export const WorkbenchView: React.FC<WorkbenchViewProps> = ({
       ? Math.round(chunks.reduce((acc, c) => acc + c.metadata.wordCount, 0) / chunks.length)
       : 0;
 
-  const modelDim = selectedModel.includes('mpnet') ? 768 : 384;
+  const modelDim = getModelDimensions(selectedModel);
 
   return (
     <div className="space-y-8">
@@ -108,7 +109,7 @@ export const WorkbenchView: React.FC<WorkbenchViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={onGoToVsCode}
             className="px-3.5 py-2 text-xs font-medium text-slate-300 bg-slate-900 border border-slate-700 rounded-lg hover:bg-slate-800 hover:text-white transition-colors whitespace-nowrap"
@@ -117,7 +118,7 @@ export const WorkbenchView: React.FC<WorkbenchViewProps> = ({
           </button>
           <button
             onClick={onSyncToChroma}
-            disabled={isSyncing}
+            disabled={isSyncing || chunks.length === 0}
             className={`flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg shadow-sm transition-all whitespace-nowrap ${
               syncedToChroma
                 ? 'bg-emerald-600 text-white hover:bg-emerald-500'
@@ -469,11 +470,11 @@ export const WorkbenchView: React.FC<WorkbenchViewProps> = ({
           </div>
 
           {/* Active Chunk Full Viewer */}
-          <div className="lg:col-span-8 bg-slate-950 border border-slate-800 rounded-lg p-4 flex flex-col justify-between">
+          <div className="lg:col-span-8 min-w-0 bg-slate-950 border border-slate-800 rounded-lg p-4 flex flex-col justify-between">
             {selectedChunk ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <div className="flex items-center gap-2 text-xs font-mono">
+                <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center justify-between border-b border-slate-800 pb-2">
+                  <div className="min-w-0 break-all flex flex-wrap items-center gap-2 text-xs font-mono">
                     <span className="text-indigo-400 font-bold">{selectedChunk.id}</span>
                     <span className="text-slate-500">·</span>
                     <span className="text-slate-300">{selectedChunk.metadata.wordCount} words</span>

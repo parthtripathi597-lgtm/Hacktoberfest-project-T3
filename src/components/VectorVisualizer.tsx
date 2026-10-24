@@ -143,12 +143,12 @@ export const VectorVisualizer: React.FC<VectorVisualizerProps> = ({
         {/* Vector Detail Inspector */}
         <div className="lg:col-span-5 flex flex-col justify-between bg-slate-950 border border-slate-800 rounded-lg p-4">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+            <div className="flex flex-wrap gap-2 items-center justify-between border-b border-slate-800 pb-2 mb-3">
               <span className="text-xs font-semibold text-slate-300">
                 Vector Value Inspection
               </span>
               {activeChunk && (
-                <span className="text-xs font-mono text-indigo-400">
+                <span className="break-all text-xs font-mono text-indigo-400">
                   {activeChunk.id}
                 </span>
               )}

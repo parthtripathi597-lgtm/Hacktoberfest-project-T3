@@ -18,6 +18,8 @@ import {
 } from './utils/vectorMath';
 import { extractTextFromPdfFile } from './utils/pdfExtractor';
 
+import { getModelDimensions, syncBookCollection } from './utils/frontendCollection';
+
 import { QuizStudioView } from './components/QuizStudioView';
 
 export default function App() {
@@ -31,7 +33,9 @@ export default function App() {
   );
   const [isExtractingPdf, setIsExtractingPdf] = useState<boolean>(false);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [syncedToChroma, setSyncedToChroma] = useState<boolean>(false);
+  const [syncedConfiguration, setSyncedConfiguration] = useState<string | null>(null);
+  const configuration = JSON.stringify([currentBook.id, targetWords, overlapWords, respectSentences, selectedModel]);
+  const syncedToChroma = syncedConfiguration === configuration;
   const [statusNotification, setStatusNotification] = useState<string | null>(null);
 
   // ChromaDB in-memory simulator instance
@@ -52,7 +56,7 @@ export default function App() {
   }, [currentBook, targetWords, overlapWords, respectSentences]);
 
   // Compute mathematical embeddings for the chunks
-  const dimensions = selectedModel.includes('mpnet') ? 768 : 384;
+  const dimensions = getModelDimensions(selectedModel);
   const embeddings: number[][] = useMemo(() => {
     return chunks.map((chunk) =>
       generateSimulatedEmbedding(chunk.text, dimensions)
@@ -69,28 +73,18 @@ export default function App() {
         documents: chunks.map((c) => c.text),
       });
       setChromaCount(chromaStore.count());
-      setSyncedToChroma(true);
+      setSyncedConfiguration(configuration);
     }
-  }, [chunks, embeddings, chromaStore]);
-
-  // Reset synced state when book or chunk parameters change
-  useEffect(() => {
-    setSyncedToChroma(false);
-  }, [currentBook.id, targetWords, overlapWords, respectSentences, selectedModel]);
+  }, [chunks, embeddings, chromaStore, configuration]);
 
   // Sync current chunks & vectors to ChromaDB
   const handleSyncToChroma = () => {
     setIsSyncing(true);
     setTimeout(() => {
-      chromaStore.add({
-        ids: chunks.map((c) => c.id),
-        embeddings: embeddings,
-        metadatas: chunks.map((c) => c.metadata),
-        documents: chunks.map((c) => c.text),
-      });
+      syncBookCollection(chromaStore, chunks, embeddings, currentBook.title);
       setChromaCount(chromaStore.count());
       setIsSyncing(false);
-      setSyncedToChroma(true);
+      setSyncedConfiguration(configuration);
       showNotification(`Successfully stored ${chunks.length} vectors in ChromaDB!`);
     }, 250);
   };
@@ -166,7 +160,7 @@ export default function App() {
     query: string,
     nResults: number
   ): ChromaQueryResult<ChunkMetadata>[] => {
-    const queryEmb = generateSimulatedEmbedding(query, dimensions);
+    const queryEmb = generateSimulatedEmbedding(query, chromaStore.peek(1)[0]?.embedding.length ?? dimensions);
     return chromaStore.query({
       queryEmbedding: queryEmb,
       nResults,
@@ -184,7 +178,7 @@ export default function App() {
 
       {/* Ephemeral Notification Banner */}
       {statusNotification && (
-        <div className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white text-xs font-medium px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in border border-emerald-400/40">
+        <div className="fixed bottom-6 left-4 right-4 sm:left-auto sm:right-6 z-50 bg-emerald-600 text-white text-xs font-medium px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in border border-emerald-400/40">
           <span>{statusNotification}</span>
         </div>
       )}
@@ -247,13 +241,13 @@ export default function App() {
       {/* Anti-slop clean footer: no telemetry tickers, clean unboxed metadata */}
       <footer className="border-t border-slate-900 bg-slate-950/80 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap justify-center items-center gap-2">
             <span className="font-semibold text-slate-400">BookVector Chroma</span>
             <span>·</span>
             <span>PDF Chunker, Hugging Face Vectors & ChromaDB Vector Store</span>
           </div>
 
-          <div className="flex items-center gap-4 text-slate-400">
+          <div className="flex flex-wrap justify-center items-center gap-4 text-slate-400">
             <button
               onClick={() => setActiveTab('workbench')}
               className="hover:text-slate-200 transition-colors"

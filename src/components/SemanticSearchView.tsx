@@ -30,17 +30,25 @@ export const SemanticSearchView: React.FC<SemanticSearchViewProps> = ({
   const [results, setResults] = useState<ChromaQueryResult<ChunkMetadata>[] | null>(null);
   const [searchedQuery, setSearchedQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   const handleExecuteSearch = (searchQuery: string = query) => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim() || isSearching) return;
+    setSearchError(null);
     setIsSearching(true);
     setSearchedQuery(searchQuery);
 
     // Simulate fast vector calculation and query
     setTimeout(() => {
-      const searchResults = onSearch(searchQuery, nResults);
-      setResults(searchResults);
-      setIsSearching(false);
+      try {
+        const searchResults = onSearch(searchQuery, nResults);
+        setResults(searchResults);
+      } catch (error: unknown) {
+        setResults(null);
+        setSearchError(error instanceof Error ? error.message : 'Search failed. Please try again.');
+      } finally {
+        setIsSearching(false);
+      }
     }, 120);
   };
 
@@ -150,11 +158,13 @@ export const SemanticSearchView: React.FC<SemanticSearchViewProps> = ({
             </div>
           </div>
 
+          {searchError && <p role="alert" className="text-sm text-rose-400">{searchError}</p>}
+
           {/* Results List */}
           {results && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <div className="flex items-center gap-2 text-xs text-slate-300">
+              <div className="flex flex-wrap gap-2 items-center justify-between border-b border-slate-800 pb-2">
+                <div className="flex flex-wrap break-words items-center gap-2 text-xs text-slate-300">
                   <span>Retrieved</span>
                   <span className="font-bold text-white font-mono">{results.length}</span>
                   <span>chunks for:</span>
@@ -190,7 +200,7 @@ export const SemanticSearchView: React.FC<SemanticSearchViewProps> = ({
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-3 text-xs font-mono">
+                          <div className="flex flex-wrap items-center gap-3 text-xs font-mono">
                             <span className="text-slate-400">
                               Pages {res.metadata.startPage}–{res.metadata.endPage}
                             </span>
@@ -211,7 +221,7 @@ export const SemanticSearchView: React.FC<SemanticSearchViewProps> = ({
                         </div>
 
                         {/* Provenance Footer */}
-                        <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono pt-1">
+                        <div className="flex flex-wrap break-all gap-2 items-center justify-between text-[11px] text-slate-500 font-mono pt-1">
                           <span>Chunk ID: {res.id}</span>
                           <span>Chroma Distance Metric: {res.distance.toFixed(4)}</span>
                         </div>

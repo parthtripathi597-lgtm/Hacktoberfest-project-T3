@@ -13,7 +13,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, chromaCount }) => {
   return (
     <header className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md border-b border-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
         {/* Zone 1: Single text element wordmark */}
         <div className="flex items-center gap-3 shrink-0">
           <a
@@ -32,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, chromaCo
         </div>
 
         {/* Zone 2: 5 clean single-line text navigation links */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-400">
+        <nav aria-label="Main navigation" className="hidden xl:flex items-center gap-6 text-sm font-medium text-slate-400">
           <button
             onClick={() => onTabChange('workbench')}
             className={`transition-colors whitespace-nowrap shrink-0 py-1 border-b-2 ${
@@ -93,14 +93,27 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, chromaCo
         {/* Zone 3: 1 primary action button */}
         <div className="flex items-center gap-3 shrink-0">
           <button
+            aria-label="Download VS Code Zip"
+            title="Download VS Code Zip"
             onClick={() => downloadProjectZip()}
             className="flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 active:bg-indigo-700 transition-colors shadow-sm whitespace-nowrap shrink-0"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Download VS Code Zip</span>
+            <span className="hidden sm:inline">Download VS Code Zip</span>
           </button>
         </div>
       </div>
+      <nav aria-label="Compact navigation" className="xl:hidden flex flex-wrap gap-x-5 gap-y-2 px-4 sm:px-6 pb-3 text-sm font-medium">
+        {([
+          ['workbench', 'Workbench'], ['quiz', 'Quiz Studio'], ['search', 'Vector Search'],
+          ['vscode', 'VS Code Project'], ['architecture', 'Architecture'],
+        ] as const).map(([tab, label]) => (
+          <button key={tab} onClick={() => onTabChange(tab)} aria-current={activeTab === tab ? 'page' : undefined}
+            className={`py-1 border-b-2 ${activeTab === tab ? 'text-white border-indigo-500' : 'text-slate-400 border-transparent hover:text-slate-200'}`}>
+            {label}
+          </button>
+        ))}
+      </nav>
     </header>
   );
 };
